@@ -23,22 +23,24 @@
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
 ## Description
+
 Nest.js 서버 프로젝트 시작용 보일러 코드입니다.
 <br/>
-현재까지 적용 : 
+현재까지 적용 :
 기능|상태
 |---|:---:|
+|client-real-ip||
 |auth|✅|
 |OAuth||
 |RBAC|✅|
+|typeORM|✅|
 |MongoDB|✅|
 |logger|✅|
-|typeORM||
-
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 <br/>
 The implemented functions are shown in the table above
+
 ## Installation
 
 ```bash
