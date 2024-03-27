@@ -23,13 +23,26 @@
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
 ## Description
+Nest.js 서버 프로젝트 시작용 보일러 코드입니다.
+<br/>
+현재까지 적용 : 
+기능|상태
+|---|:---:|
+|auth|✅|
+|OAuth||
+|RBAC|✅|
+|MongoDB|✅|
+|logger|✅|
+|typeORM||
+
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
+<br/>
+The implemented functions are shown in the table above
 ## Installation
 
 ```bash
-$ npm install
+$ npm clone [repository address]
 ```
 
 ## Running the app
@@ -57,16 +70,6 @@ $ npm run test:e2e
 # test coverage
 $ npm run test:cov
 ```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
 
 ## License
 
