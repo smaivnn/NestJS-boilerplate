@@ -1,27 +1,21 @@
-import { Module, Logger } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
+import { mongoModuleOptions } from './common/config/database/MongooseModule.config';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { typeOrmModuleOptions } from './common/config/database/Typeorm.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    MongooseModule.forRoot(process.env.MONGODB_URI, {
-      connectionFactory: (connection) => {
-        if (connection.readyState === 1) {
-          Logger.log('✅ mongoDB connected...');
-        }
-        connection.on('disconnected', () => {
-          Logger.log('🆘 mongoDB disconnected...');
-        });
-        return connection;
-      },
-    }),
+    MongooseModule.forRootAsync(mongoModuleOptions),
+    TypeOrmModule.forRootAsync(typeOrmModuleOptions),
     UserModule,
     AuthModule,
   ],

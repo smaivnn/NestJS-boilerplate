@@ -11,15 +11,16 @@ import * as passport from 'passport';
 import * as cookieParser from 'cookie-parser';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as expressBasicAuth from 'express-basic-auth';
+import { HttpExceptionFilter } from './common/exceptions/http-exception.filter';
 
 class Application {
   private logger = new Logger(Application.name);
   private DEV_MODE: boolean;
+  private DOMAIN: string;
   private PORT: string;
   private corsOriginList: string[];
   private ADMIN_USER: string;
   private ADMIN_PASSWORD: string;
-  private Domain: string;
 
   constructor(private server: NestExpressApplication) {
     this.server = server;
@@ -32,7 +33,7 @@ class Application {
       : ['*'];
     this.ADMIN_USER = process.env.ADMIN_USER || 'username';
     this.ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '1234';
-    this.Domain = process.env.DOMAIN || 'http://localhost';
+    this.DOMAIN = process.env.DOMAIN || 'http://localhost';
   }
 
   // docs secure
@@ -56,7 +57,7 @@ class Application {
         this.server,
         new DocumentBuilder()
           .setTitle('API DOCS')
-          .setDescription('nestJS boilerplate')
+          .setDescription('NestJS boilerplate')
           .setVersion('1.0')
           .build(),
       ),
@@ -77,10 +78,11 @@ class Application {
       }),
     );
     this.server.use(passport.initialize());
-    // this.server.use(passport.session());
+    this.server.use(passport.session());
     this.server.useGlobalInterceptors(
       new ClassSerializerInterceptor(this.server.get(Reflector)),
     );
+    this.server.useGlobalFilters(new HttpExceptionFilter());
   }
 
   async bootstrap() {
@@ -90,9 +92,9 @@ class Application {
 
   startLog() {
     if (this.DEV_MODE) {
-      this.logger.log(`✅ Server on ${this.Domain}:${this.PORT}`);
+      this.logger.log(`✅ Server on localhost:${this.PORT}`);
     } else {
-      this.logger.log(`✅ Server on port ${this.PORT}...`);
+      this.logger.log(`✅ Server on ${this.DOMAIN}:${this.PORT}`);
     }
   }
 
