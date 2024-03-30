@@ -1,51 +1,40 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
-import { Model, Types } from 'mongoose';
-import { User } from 'src/user/database/user.schema';
-import { UserRequestDto } from '../../user/dto/user.request.dto';
+import { UserRegisterDTO } from '../../user/dto/user.register.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { UserEntity } from 'src/user/database/user.entity';
+import { Repository, DataSource } from 'typeorm';
 
 @Injectable()
 export class AuthRepository {
   constructor(
-    @InjectModel(User.name) private readonly userModel: Model<User>,
+    @InjectRepository(UserEntity)
+    private readonly userDbAccess: Repository<UserEntity>,
+    private dataSource: DataSource,
   ) {}
 
-  async handleSignup(user: UserRequestDto): Promise<User> {
-    return await this.userModel.create(user);
+  async handleSignup(body: UserRegisterDTO): Promise<void> {
+    try {
+      await this.userDbAccess.save(body);
+    } catch (error) {
+      throw new Error('회원가입에 실패했습니다.');
+    }
   }
 
-  async validateUserByIdWithoutPassword(
-    userId: string | Types.ObjectId,
-  ): Promise<User | null> {
-    const foundUser = await this.userModel.findById(userId).select('-password');
-    return foundUser;
+  async setRefreshToken(id: string, token: string): Promise<void> {
+    try {
+      const hashedToken = token != null ? await bcrypt.hash(token, 10) : '';
+      await this.userDbAccess.update({ id }, { refreshToken: hashedToken });
+    } catch (error) {
+      throw new Error('Failed to set refresh token');
+    }
   }
 
-  async setRefreshToken(user, token: string = null): Promise<User | null> {
-    const hashedToken = token != null ? await bcrypt.hash(token, 10) : '';
-    user.refreshToken = hashedToken;
-    await user.save();
-    return user;
-  }
-
-  async setClientIpAddress(
-    user,
-    clientIp: string = null,
-  ): Promise<User | null> {
-    user.latestIp = clientIp;
-    await user.save();
-    return user;
-  }
-
-  async compareRefreshToken(
-    hashedRefreshToken: string,
-    tokenFromCookie: string,
-  ) {
-    const isRefreshTokenMatching = await bcrypt.compare(
-      tokenFromCookie,
-      hashedRefreshToken,
-    );
-    return isRefreshTokenMatching;
+  async invalidateRefreshToken(id: string): Promise<void> {
+    try {
+      await this.userDbAccess.update({ id }, { refreshToken: null });
+    } catch (error) {
+      throw new Error('Failed to invalidate refresh token');
+    }
   }
 }

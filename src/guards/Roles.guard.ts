@@ -1,4 +1,10 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from 'src/constants/role.enum';
 
@@ -15,6 +21,14 @@ export class RolesGuard implements CanActivate {
       return true;
     }
     const { user } = context.switchToHttp().getRequest();
-    return requiredRoles.some((role) => user.roles?.includes(role));
+    const hasRole = () => requiredRoles.some((role) => role === user.role);
+
+    if ((user && user.role === 'admin') || hasRole()) {
+      return true;
+    }
+    throw new HttpException(
+      'Not allowed access. You do not have the required roles.',
+      HttpStatus.FORBIDDEN,
+    );
   }
 }

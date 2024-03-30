@@ -1,9 +1,9 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Payload } from './jwt.payload';
-import { AuthRepository } from '../database/auth.repository';
 import { ConfigService } from '@nestjs/config';
+import { UserRepository } from 'src/user/database/user.repository';
 
 @Injectable()
 export class AccessStrategy extends PassportStrategy(
@@ -12,7 +12,7 @@ export class AccessStrategy extends PassportStrategy(
 ) {
   constructor(
     private readonly configService: ConfigService,
-    private readonly authRepository: AuthRepository,
+    private readonly userRepository: UserRepository,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -22,17 +22,13 @@ export class AccessStrategy extends PassportStrategy(
   }
 
   async validate(payload: Payload) {
-    try {
-      const user = await this.authRepository.validateUserByIdWithoutPassword(
-        payload.sub,
-      );
-      if (user) {
-        return user;
-      } else {
-        throw new Error('해당하는 유저는 없습니다.');
-      }
-    } catch (error) {
-      throw new UnauthorizedException(error);
+    const user = await this.userRepository.getUserInfoWithoutSensitiveFields(
+      payload.id,
+    );
+    if (user) {
+      return user;
+    } else {
+      throw new Error('해당하는 유저는 없습니다.');
     }
   }
 }

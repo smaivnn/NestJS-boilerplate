@@ -12,8 +12,8 @@ import { Roles } from 'src/decorators/roles.decorator';
 import { Role } from 'src/constants/role.enum';
 import { Response, Request } from 'express';
 import { ApiOperation } from '@nestjs/swagger';
-import { UserRequestDto } from 'src/user/dto/user.request.dto';
-import { LoginRequestDto } from '../dto/login.request.dto';
+import { UserRegisterDTO } from 'src/user/dto/user.register.dto';
+import { AuthLoginDto } from '../dto/auth.login.dto';
 import { JwtAuthGuard } from '../jwt/access-auth.guard';
 import { RolesGuard } from 'src/guards/Roles.guard';
 import { RefreshAuthGuard } from '../jwt/refresh-auth.guards';
@@ -23,19 +23,18 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @ApiOperation({ summary: '회원가입' })
-  @Post()
-  async signup(@Body() body: UserRequestDto) {
-    return await this.authService.signUp(body);
+  @Post('email/register')
+  async register(@Body() body: UserRegisterDTO): Promise<void> {
+    return await this.authService.register(body);
   }
 
   @ApiOperation({ summary: '로그인' })
-  @Post('login')
+  @Post('email/login')
   login(
-    @Body() data: LoginRequestDto,
+    @Body() body: AuthLoginDto,
     @Res({ passthrough: true }) response: Response,
-    @Req() request: Request,
   ) {
-    return this.authService.jwtLocalLogin(data, response, request);
+    return this.authService.jwtLocalLogin(body, response);
   }
 
   @ApiOperation({ summary: '토큰 갱신' })
@@ -45,7 +44,7 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
     @Req() request: Request,
   ) {
-    return this.authService.getNewAccessToken(request.user, response);
+    return this.authService.getNewAccessToken(request, response);
   }
 
   @ApiOperation({ summary: '로그아웃' })
@@ -55,7 +54,7 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
     @Req() request: Request,
   ) {
-    return this.authService.logout(request.user, response);
+    return this.authService.logout(request, response);
   }
 
   @ApiOperation({ summary: '유저 목록' })

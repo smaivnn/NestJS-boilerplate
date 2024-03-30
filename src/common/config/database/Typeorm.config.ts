@@ -1,6 +1,6 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
-// import { UserEntity, BlogEntity } from '../../entities';
+import { UserEntity } from '../../../user/database/user.entity';
 
 export const typeOrmModuleOptions = {
   useFactory: async (): Promise<TypeOrmModuleOptions> => ({
@@ -11,7 +11,7 @@ export const typeOrmModuleOptions = {
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    entities: [], // [UserEntity, BlogEntity]
+    entities: [UserEntity],
     synchronize: true, //! set 'false' in production
     autoLoadEntities: true,
     logging: true,

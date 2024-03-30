@@ -8,6 +8,7 @@ import {
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { winstonLogger } from './common/logger/winston.util';
 import * as passport from 'passport';
+import * as expressSession from 'express-session';
 import * as cookieParser from 'cookie-parser';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as expressBasicAuth from 'express-basic-auth';
@@ -75,6 +76,13 @@ class Application {
     this.server.useGlobalPipes(
       new ValidationPipe({
         transform: true,
+      }),
+    );
+    this.server.use(
+      expressSession({
+        secret: 'SECRET',
+        resave: true,
+        saveUninitialized: true,
       }),
     );
     this.server.use(passport.initialize());

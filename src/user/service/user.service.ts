@@ -1,15 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
+import { UserRepository } from '../database/user.repository';
+import { Role } from 'src/constants/role.enum';
 
 @Injectable()
 export class UserService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
-  }
+  constructor(private readonly userRepository: UserRepository) {}
 
-  findAll() {
-    return `This action returns all user`;
+  async findAll() {
+    return await this.userRepository.findAllUser();
   }
 
   findOne(id: number) {
@@ -17,7 +16,15 @@ export class UserService {
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+    return `This action updates a #${updateUserDto} user`;
+  }
+
+  async updateUserRoles(id: string, role: Role) {
+    const user = await this.userRepository.findUserById(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    await this.userRepository.updateUserRoles(user, role);
   }
 
   remove(id: number) {

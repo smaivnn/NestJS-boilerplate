@@ -3,9 +3,8 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { AuthRepository } from './../database/auth.repository';
-import { Types } from 'mongoose';
-import { UserRequestDto } from 'src/user/dto/user.request.dto';
-import { LoginRequestDto } from '../dto/login.request.dto';
+import { UserRegisterDTO } from 'src/user/dto/user.register.dto';
+import { AuthLoginDto } from '../dto/auth.login.dto';
 import { UserRepository } from 'src/user/database/user.repository';
 import { ConfigService } from '@nestjs/config';
 
@@ -20,41 +19,46 @@ export class AuthService {
 
   private async generateTokens(data: {
     email: string;
-    sub: string | Types.ObjectId;
-  }) {
-    const accessToken = this.jwtService.sign(data, {
-      secret: this.configService.get('ACCESS_SECRET'),
-      expiresIn: '15m',
-    });
-    const refreshToken = this.jwtService.sign(data, {
-      secret: this.configService.get('REFRESH_SECRET'),
-      expiresIn: '20m',
-    });
+    id: string;
+    role: string;
+  }): Promise<{ accessToken: string; refreshToken: string }> {
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(data, {
+        secret: this.configService.get('ACCESS_SECRET'),
+        expiresIn: '15s',
+      }),
+      this.jwtService.signAsync(data, {
+        secret: this.configService.get('REFRESH_SECRET'),
+        expiresIn: '20m',
+      }),
+    ]);
 
     return { accessToken, refreshToken };
   }
 
-  async signUp(body: UserRequestDto) {
-    const { email, name, password } = body;
+  async register(body: UserRegisterDTO): Promise<void> {
+    const { email, username, nickname, password } = body;
+
+    const foundUser = await this.userRepository.findUserByEmail(email);
+    if (foundUser) {
+      throw new UnauthorizedException('이미 존재하는 이메일입니다.');
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = await this.authRepository.handleSignup({
+    await this.authRepository.handleSignup({
       email,
-      name,
+      username,
       password: hashedPassword,
+      nickname,
     });
-
-    return newUser.readOnlyData;
   }
 
   async jwtLocalLogin(
-    data: LoginRequestDto,
+    body: AuthLoginDto,
     response: Response,
-    request: Request,
-  ) {
-    const { email, password } = data;
-    const clientIp = request.ip;
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    const { email, password } = body;
 
     const foundUser = await this.userRepository.findUserByEmail(email);
     if (!foundUser) {
@@ -69,10 +73,9 @@ export class AuthService {
       throw new UnauthorizedException('이메일과 비밀번호를 확인해주세요.');
     }
 
-    const payload = { email: email, sub: foundUser.id, roles: foundUser.roles };
+    const payload = { email: email, id: foundUser.id, role: foundUser.role };
     const { accessToken, refreshToken } = await this.generateTokens(payload);
-    await this.authRepository.setRefreshToken(foundUser, refreshToken);
-    await this.authRepository.setClientIpAddress(foundUser, clientIp);
+    await this.authRepository.setRefreshToken(foundUser.id, refreshToken);
     response.cookie('refresh_token', refreshToken, {
       httpOnly: true,
     });
@@ -83,11 +86,19 @@ export class AuthService {
     };
   }
 
-  async getNewAccessToken(data, response: Response) {
+  async getNewAccessToken(
+    request: any,
+    response: Response,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     response.clearCookie('refresh_token');
-    const payload = { email: data.email, sub: data.id, roles: data.roles };
-    const { accessToken, refreshToken } = await this.generateTokens(payload);
-    await this.authRepository.setRefreshToken(data, refreshToken);
+    const { user } = request;
+
+    const { accessToken, refreshToken } = await this.generateTokens({
+      email: user.email,
+      id: user.id,
+      role: user.role,
+    });
+    await this.authRepository.setRefreshToken(user.id, refreshToken);
 
     response.cookie('refresh_token', refreshToken, {
       httpOnly: true,
@@ -105,11 +116,23 @@ export class AuthService {
     return user;
   }
 
-  async logout(data, response: Response) {
+  async logout(request: any, response: Response) {
+    const { user } = request;
     response.clearCookie('refresh_token');
-    await this.authRepository.setRefreshToken(data);
+    await this.authRepository.invalidateRefreshToken(user.id);
     return {
       redirect: 'URL',
     };
+  }
+
+  async compareRefreshToken(
+    hashedRefreshToken: string,
+    tokenFromCookie: string,
+  ): Promise<boolean> {
+    const isRefreshTokenMatching = await bcrypt.compare(
+      tokenFromCookie,
+      hashedRefreshToken,
+    );
+    return isRefreshTokenMatching;
   }
 }
