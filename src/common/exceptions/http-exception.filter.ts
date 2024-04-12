@@ -7,6 +7,12 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 
+/**
+ * USAGE single
+ * throw new HttpException('This is a custom message', HttpStatus.BAD_REQUEST);
+ * USAGE object
+ * throw new HttpException({ error: 'Custom error', message: ['This is a custom message'] }, HttpStatus.BAD_REQUEST);
+ */
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(HttpExceptionFilter.name);

@@ -13,6 +13,7 @@ import * as cookieParser from 'cookie-parser';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as expressBasicAuth from 'express-basic-auth';
 import { HttpExceptionFilter } from './common/exceptions/http-exception.filter';
+import { LoggingInterceptor } from './common/interceptor/Logging.Interceptor';
 
 class Application {
   private logger = new Logger(Application.name);
@@ -115,6 +116,7 @@ async function init(): Promise<void> {
   const server = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: winstonLogger,
   });
+  server.useGlobalInterceptors(new LoggingInterceptor(new Logger()));
   const app = new Application(server);
   await app.bootstrap();
   app.startLog();

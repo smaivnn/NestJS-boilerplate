@@ -11,24 +11,27 @@ import {
 import { Roles } from 'src/decorators/roles.decorator';
 import { Role } from 'src/constants/role.enum';
 import { Response, Request } from 'express';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserRegisterDTO } from 'src/user/dto/user.register.dto';
 import { AuthLoginDto } from '../dto/auth.login.dto';
 import { JwtAuthGuard } from '../jwt/access-auth.guard';
 import { RolesGuard } from 'src/guards/Roles.guard';
 import { RefreshAuthGuard } from '../jwt/refresh-auth.guards';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @ApiOperation({ summary: '회원가입' })
+  @ApiBody({ type: UserRegisterDTO })
   @Post('email/register')
   async register(@Body() body: UserRegisterDTO): Promise<void> {
     return await this.authService.register(body);
   }
 
   @ApiOperation({ summary: '로그인' })
+  @ApiBody({ type: AuthLoginDto })
   @Post('email/login')
   login(
     @Body() body: AuthLoginDto,

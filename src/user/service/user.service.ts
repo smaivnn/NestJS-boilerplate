@@ -11,23 +11,11 @@ export class UserService {
     return await this.userRepository.findAllUser();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${updateUserDto} user`;
-  }
-
   async updateUserRoles(id: string, role: Role) {
     const user = await this.userRepository.findUserById(id);
     if (!user) {
       throw new Error('User not found');
     }
     await this.userRepository.updateUserRoles(user, role);
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
   }
 }

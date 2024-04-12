@@ -8,6 +8,7 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmModuleOptions } from './common/config/database/Typeorm.config';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { typeOrmModuleOptions } from './common/config/database/Typeorm.config';
     }),
     MongooseModule.forRootAsync(mongoModuleOptions),
     TypeOrmModule.forRootAsync(typeOrmModuleOptions),
+    CommonModule,
     UserModule,
     AuthModule,
   ],

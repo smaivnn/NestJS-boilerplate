@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './user.entity';
 import { Repository } from 'typeorm';
@@ -9,6 +9,7 @@ export class UserRepository {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userDbAccess: Repository<UserEntity>,
+    @Inject(Logger) private readonly logger: LoggerService,
   ) {}
 
   async findUserById(id: string): Promise<UserEntity | null> {
