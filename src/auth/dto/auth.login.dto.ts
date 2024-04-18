@@ -1,7 +1,8 @@
 import { PickType } from '@nestjs/swagger';
-import { User } from 'src/user/database/user.schema';
+import { UserEntity } from '../../user/database/user.entity';
+import { Expose } from 'class-transformer';
 
-export class AuthLoginDto extends PickType(User, [
-  'email',
-  'password',
-] as const) {}
+export class AuthLoginDto extends PickType(UserEntity, ['email'] as const) {
+  @Expose()
+  password: string;
+}

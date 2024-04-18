@@ -2,8 +2,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { Payload } from './jwt.payload';
-import { AuthService } from '../service/auth.service';
+import { refreshPayload } from './jwt.payload';
 import { ConfigService } from '@nestjs/config';
 import { UserRepository } from 'src/user/database/user.repository';
 
@@ -14,7 +13,6 @@ export class RefreshStrategy extends PassportStrategy(
 ) {
   constructor(
     private readonly userRepository: UserRepository,
-    private readonly authService: AuthService,
     private readonly configService: ConfigService,
   ) {
     super({
@@ -29,7 +27,7 @@ export class RefreshStrategy extends PassportStrategy(
     });
   }
 
-  async validate(request: Request, payload: Payload) {
+  async validate(request: Request, payload: refreshPayload) {
     try {
       const refreshTokenFromCookie = request.cookies?.refresh_token;
       const foundUser = await this.userRepository.findUserById(payload.id);
@@ -37,10 +35,8 @@ export class RefreshStrategy extends PassportStrategy(
       if (!foundUser) {
         throw new Error('해당하는 유저는 없습니다.');
       }
-      const isTokenMatch = await this.authService.compareRefreshToken(
-        foundUser.refreshToken,
-        refreshTokenFromCookie,
-      );
+      const isTokenMatch =
+        foundUser.refreshToken === refreshTokenFromCookie ? true : false;
 
       if (isTokenMatch) {
         return foundUser;

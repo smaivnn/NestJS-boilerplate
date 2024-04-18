@@ -9,6 +9,9 @@ import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmModuleOptions } from './common/config/database/Typeorm.config';
 import { CommonModule } from './common/common.module';
+import { EmailService } from './email/email.service';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { EmailController } from './email/email.controller';
 
 @Module({
   imports: [
@@ -17,11 +20,21 @@ import { CommonModule } from './common/common.module';
     }),
     MongooseModule.forRootAsync(mongoModuleOptions),
     TypeOrmModule.forRootAsync(typeOrmModuleOptions),
+    MailerModule.forRoot({
+      transport: {
+        host: 'smtp.gmail.com',
+        port: 587,
+        auth: {
+          user: process.env.MAIL_USER,
+          pass: process.env.MAIL_PASS,
+        },
+      },
+    }),
     CommonModule,
     UserModule,
     AuthModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, EmailController],
+  providers: [AppService, EmailService],
 })
 export class AppModule {}

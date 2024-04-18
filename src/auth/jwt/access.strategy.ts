@@ -1,7 +1,7 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
-import { Payload } from './jwt.payload';
+import { accessPayload } from './jwt.payload';
 import { ConfigService } from '@nestjs/config';
 import { UserRepository } from 'src/user/database/user.repository';
 
@@ -21,10 +21,8 @@ export class AccessStrategy extends PassportStrategy(
     });
   }
 
-  async validate(payload: Payload) {
-    const user = await this.userRepository.getUserInfoWithoutSensitiveFields(
-      payload.id,
-    );
+  async validate(payload: accessPayload) {
+    const user = await this.userRepository.findUserById(payload.id);
     if (user) {
       return user;
     } else {

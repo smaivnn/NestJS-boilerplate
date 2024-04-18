@@ -67,4 +67,15 @@ export class UserRepository {
     const foundUserList = await this.userDbAccess.find();
     return foundUserList;
   }
+
+  async deactivateUser(user: UserEntity, deleteReason: string) {
+    try {
+      user.deleteReason = deleteReason;
+      user.deletedAt = new Date();
+      user.is_deleted = true;
+      await this.userDbAccess.save(user);
+    } catch (error) {
+      throw new Error('Failed to deactivate user');
+    }
+  }
 }

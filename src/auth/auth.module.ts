@@ -11,6 +11,8 @@ import { UserSchema, User } from 'src/user/database/user.schema';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from 'src/user/database/user.entity';
 import { UserModule } from 'src/user/user.module';
+import { GoogleStrategy } from './jwt/google.strategy';
+import { EmailService } from 'src/email/email.service';
 
 @Module({
   imports: [
@@ -21,7 +23,14 @@ import { UserModule } from 'src/user/user.module';
     JwtModule,
     UserModule,
   ],
-  providers: [AuthService, AuthRepository, AccessStrategy, RefreshStrategy],
+  providers: [
+    AuthService,
+    AuthRepository,
+    AccessStrategy,
+    RefreshStrategy,
+    GoogleStrategy,
+    EmailService,
+  ],
   controllers: [AuthController],
 })
 export class AuthModule {}
